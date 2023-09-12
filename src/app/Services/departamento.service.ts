@@ -15,8 +15,8 @@ export class DepartamentoService {
 
   constructor(private http: HttpClient) { }
 
-  getList(): Observable<Departamento> {
-    return this.http.get<Departamento>(`${this.apiUrl}lista`);
+  getList(): Observable<Departamento[]> {
+    return this.http.get<Departamento[]>(`${this.apiUrl}lista`);
   };
 
 }
