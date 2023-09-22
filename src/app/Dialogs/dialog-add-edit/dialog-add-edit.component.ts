@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { MAT_DATE_FORMATS } from '@angular/material/core';
@@ -48,6 +48,7 @@ export class DialogAddEditComponent implements OnInit {
     private _snackBar: MatSnackBar,
     private _departamentoServicio: DepartamentoService,
     private _empleadoService: EmpleadoService,
+    @Inject(MAT_DIALOG_DATA) public dataEmpleado: Empleado
   ) {
 
     this.formEmpleado = this.fb.group({
@@ -74,7 +75,7 @@ export class DialogAddEditComponent implements OnInit {
   }
 
   addEditEmpleado() {
-    console.log(this.formEmpleado.value);
+
     const modelo: Empleado = {
       idEmpleado: 0,
       nombreCompleto: this.formEmpleado.value.nombreCompleto,
@@ -83,18 +84,39 @@ export class DialogAddEditComponent implements OnInit {
       fechaContrato: moment(this.formEmpleado.value.fechaContrato).format("DD/MM/YYYY"),
     }
 
-    this._empleadoService.add(modelo).subscribe({
-      next: (dataResponse) => {
-        this.mostrarAlerta("Empleado fue creado", "Listo");
-        this.dialogoReferencia.close("creado");
-      }, error: (e) => {
-        this.mostrarAlerta("Error al crear Empleado", "Error");
-      }
-    });
-
+    if (this.dataEmpleado == null) {
+      this._empleadoService.add(modelo).subscribe({
+        next: (dataResponse) => {
+          this.mostrarAlerta("Empleado fue creado", "Listo");
+          this.dialogoReferencia.close("creado");
+        }, error: (e) => {
+          this.mostrarAlerta("Error al crear Empleado", "Error");
+        }
+      });
+    } else {
+      this._empleadoService.update(this.dataEmpleado.idEmpleado, modelo).subscribe({
+        next: (dataResponse) => {
+          this.mostrarAlerta("Empleado fue editado", "Listo");
+          this.dialogoReferencia.close("editado");
+        }, error: (e) => {
+          this.mostrarAlerta("Error al editar Empleado", "Error");
+        }
+      });
+    }
   }
 
   ngOnInit(): void {
+    if (this.dataEmpleado) {
+      this.formEmpleado.patchValue({
+        nombreCompleto: this.dataEmpleado.nombreCompleto,
+        idDepartamento: this.dataEmpleado.idDepartamento,
+        sueldo: this.dataEmpleado.sueldo,
+        fechaContrato: moment(this.dataEmpleado.fechaContrato, "DD/MM/YYYY"),
+      });
+
+      this.tituloAccion = "Editar";
+      this.botonAccion = "Actualizar";
+    }
   }
 
 }
